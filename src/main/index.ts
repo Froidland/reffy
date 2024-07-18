@@ -3,6 +3,7 @@ import { join } from "path";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import icon from "../../resources/icon.png?asset";
 import {
+	destroyBancho,
 	disconnectBancho,
 	initializeBancho,
 	loginBancho,
@@ -10,9 +11,10 @@ import {
 	sendPrivateMessage,
 } from "./bancho";
 
-function createWindow(): void {
+function createWindow() {
 	// Create the browser window.
 	const mainWindow = new BrowserWindow({
+		title: "Reffy",
 		width: 900,
 		height: 670,
 		show: false,
@@ -40,6 +42,8 @@ function createWindow(): void {
 	} else {
 		mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
 	}
+
+	return mainWindow;
 }
 
 // This method will be called when Electron has finished
@@ -47,7 +51,7 @@ function createWindow(): void {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
 	// Set app user model id for windows
-	electronApp.setAppUserModelId("com.electron");
+	electronApp.setAppUserModelId("com.reffy");
 
 	// Default open or close DevTools by F12 in development
 	// and ignore CommandOrControl + R in production.
@@ -56,10 +60,15 @@ app.whenReady().then(() => {
 		optimizer.watchWindowShortcuts(window);
 	});
 
+	const window = createWindow();
+
 	// IPC test
 	ipcMain.on("ping", () => console.log("pong"));
-	ipcMain.handle("bancho:initialize", (_event, arg) => initializeBancho(arg));
+	ipcMain.handle("bancho:initialize", (_event, arg) =>
+		initializeBancho(arg, window.webContents),
+	);
 	ipcMain.handle("bancho:login", async () => await loginBancho());
+	ipcMain.handle("bancho:destroy", destroyBancho);
 	ipcMain.handle(
 		"bancho:sendPrivateMessage",
 		async (_event, arg) =>
@@ -70,8 +79,6 @@ app.whenReady().then(() => {
 		async (_event, arg) =>
 			await sendChannelMessage(arg.channelName, arg.message),
 	);
-
-	createWindow();
 
 	app.on("activate", function () {
 		// On macOS it's common to re-create a window in the app when the
