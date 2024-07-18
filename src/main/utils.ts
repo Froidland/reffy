@@ -5,5 +5,5 @@ export function debug(message?: any, ...optionalParams: any[]): void {
 		return;
 	}
 
-	console.log(message, ...optionalParams);
+	console.log(`${new Date().toISOString()} ${message}`, ...optionalParams);
 }
