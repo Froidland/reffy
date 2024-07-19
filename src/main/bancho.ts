@@ -25,7 +25,7 @@ export function initializeBancho(
 	});
 	bancho.on("CM", (message) => {
 		debug(
-			`[#${message.channel.name}] ${message.user.ircUsername}: ${message.content}`,
+			`[${message.channel.name}] ${message.user.ircUsername}: ${message.content}`,
 		);
 		webContents.send("bancho:cm", {
 			channelName: message.channel.name,
