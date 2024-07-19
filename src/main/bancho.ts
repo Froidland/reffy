@@ -173,3 +173,39 @@ export async function sendChannelMessage(channelName: string, message: string) {
 		};
 	}
 }
+
+export async function joinChannel(channelName: string) {
+	if (!bancho) {
+		debug("{joinChannel} bancho not initialized");
+		return {
+			success: false,
+			message: "Bancho not initialized",
+		};
+	}
+
+	try {
+		const channel = bancho.getChannel(channelName);
+		// I'm not sure if channel can be falsy
+		if (!channel) {
+			debug("{joinChannel} channel not found", channelName);
+			return {
+				success: false,
+				message: "Channel not found",
+			};
+		}
+
+		await channel.join();
+		debug("{joinChannel} joined channel", channelName);
+
+		return {
+			success: true,
+			message: `Joined ${channelName}`,
+		};
+	} catch (err) {
+		debug("{joinChannel}", err);
+		return {
+			success: false,
+			message: (err as Error).message,
+		};
+	}
+}

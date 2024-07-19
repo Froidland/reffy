@@ -6,6 +6,7 @@ import {
 	destroyBancho,
 	disconnectBancho,
 	initializeBancho,
+	joinChannel,
 	loginBancho,
 	sendChannelMessage,
 	sendPrivateMessage,
@@ -78,6 +79,9 @@ app.whenReady().then(() => {
 		"bancho:sendChannelMessage",
 		async (_event, arg) =>
 			await sendChannelMessage(arg.channelName, arg.message),
+	);
+	ipcMain.handle("bancho:joinChannel", async (_event, arg) =>
+		joinChannel(arg.channelName),
 	);
 
 	app.on("activate", function () {

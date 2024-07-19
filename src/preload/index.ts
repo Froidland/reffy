@@ -26,6 +26,10 @@ const api = {
 			channelName,
 			message,
 		}),
+	joinChannel: async (channelName: string): Promise<BaseBanchoResponse> =>
+		await ipcRenderer.invoke("bancho:joinChannel", {
+			channelName,
+		}),
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to
