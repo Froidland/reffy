@@ -58,14 +58,15 @@ type PrivateMessage = {
 	timestamp: Date;
 };
 
+type PublicMessage = {
+	username: string;
+	message: string;
+	timestamp: Date;
+};
+
 type PublicChannel = BaseChannel & {
 	type: "public";
-	history: {
-		action: "message" | "join" | "leave";
-		username: string;
-		message: string;
-		timestamp: Date;
-	}[];
+	history: (PublicMessage & { action: "message" })[];
 };
 
 type PrivateChannel = BaseChannel & {
@@ -89,13 +90,24 @@ type LobbyChannel = BaseChannel & {
 		username: string;
 		team: "red" | "blue" | null;
 		slot: number;
-	};
+	}[];
 	history: LobbyChannelHistory[];
 };
 
 type Channel = PublicChannel | PrivateChannel | LobbyChannel;
 
 const channels = writable<{ [name: string]: Channel }>({});
+const currentChannel = writable<Channel | null>(null);
+
+function setCurrentChannel(channelName: string) {
+	const channel = get(channels)[channelName];
+
+	if (!channel) {
+		return;
+	}
+
+	currentChannel.set(channel);
+}
 
 function addChannel(channel: Channel) {
 	const existingChannel = get(channels)[channel.name];
@@ -154,6 +166,44 @@ function addPrivateMessage(message: PrivateMessage) {
 		...channels,
 		[message.username]: channel,
 	}));
+
+	// this makes the messages view update itself, there has to be a better way
+	if (get(currentChannel) === channel) {
+		setCurrentChannel(message.username);
+	}
+}
+
+function addChannelMessage(message: PublicMessage & { channelName: string }) {
+	const channel = get(channels)[message.channelName];
+
+	if (!channel) {
+		addChannel({
+			type: "public",
+			name: message.channelName,
+			history: [
+				{
+					action: "message",
+					username: message.username,
+					message: message.message,
+					timestamp: message.timestamp,
+				},
+			],
+		});
+
+		return;
+	}
+
+	channel.history.push({
+		action: "message",
+		username: message.username,
+		message: message.message,
+		timestamp: message.timestamp,
+	});
+
+	// this makes the messages view update itself, there has to be a better way
+	if (get(currentChannel) === channel) {
+		setCurrentChannel(message.channelName);
+	}
 }
 
 window.electron.ipcRenderer.on(
@@ -163,9 +213,22 @@ window.electron.ipcRenderer.on(
 	},
 );
 
-// TODO: add handling for channel messages
+window.electron.ipcRenderer.on(
+	"bancho:cm",
+	(_event, message: PublicMessage & { channelName: string }) => {
+		addChannelMessage(message);
+	},
+);
 
-export { channels, addChannel, removeChannel, addPrivateMessage };
+export {
+	channels,
+	currentChannel,
+	setCurrentChannel,
+	addChannel,
+	removeChannel,
+	addPrivateMessage,
+	addChannelMessage,
+};
 
 // I would love to not have to do this in every damn file where I use the API, but it just doesn't work, maybe I'm doing something wrong or I'm just stupid
 declare global {
