@@ -42,6 +42,7 @@
 		}
 
 		channels.addChannel(createDefaultChannel(channelName.toString()));
+		currenChannelName = channelName.toString();
 
 		if (
 			["lobby", "public"].includes(
