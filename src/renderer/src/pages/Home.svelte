@@ -6,6 +6,7 @@
 		getChannelTypeFromName,
 	} from "../stores/channels";
 	import { afterUpdate } from "svelte";
+	import { getFormattedTimestamp } from "../utils";
 
 	let message = "";
 	let newChannelDialog: HTMLDialogElement;
@@ -178,16 +179,9 @@
 						<li class="flex gap-2">
 							<div>
 								<span class="text-zinc-300"
-									>[{message.timestamp
-										.getHours()
-										.toString()
-										.padStart(2, "0")}:{message.timestamp
-										.getMinutes()
-										.toString()
-										.padStart(2, "0")}:{message.timestamp
-										.getSeconds()
-										.toString()
-										.padStart(2, "0")}]
+									>[{getFormattedTimestamp(
+										message.timestamp,
+									)}]
 								</span>
 								<span class="font-bold text-[#f9c160]"
 									>{message.username}: {" "}
