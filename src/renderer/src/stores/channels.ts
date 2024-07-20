@@ -1,6 +1,4 @@
-import type { ElectronAPI } from "@electron-toolkit/preload";
 import { writable } from "svelte/store";
-import type { API } from "../../../preload";
 
 type ChannelType = "public" | "private" | "lobby";
 
@@ -194,11 +192,3 @@ window.electron.ipcRenderer.on(
 		channels.addMessage(message.channelName, message);
 	},
 );
-
-// I would love to not have to do this in every damn file where I use the API, but it just doesn't work, maybe I'm doing something wrong or I'm just stupid
-declare global {
-	interface Window {
-		electron: ElectronAPI;
-		api: API;
-	}
-}
