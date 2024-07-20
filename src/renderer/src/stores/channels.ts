@@ -182,9 +182,12 @@ function createChannelStore() {
 
 export const channels = createChannelStore();
 
-window.electron.ipcRenderer.on("bancho:pm", (_event, message: Message) => {
-	channels.addMessage(message.username, message);
-});
+window.electron.ipcRenderer.on(
+	"bancho:pm",
+	(_event, message: Message & { channelName: string }) => {
+		channels.addMessage(message.channelName, message);
+	},
+);
 
 window.electron.ipcRenderer.on(
 	"bancho:cm",

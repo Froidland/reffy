@@ -3,6 +3,7 @@ import { debug } from "./utils";
 import type { WebContents } from "electron";
 
 let bancho: BanchoJs.BanchoClient;
+let selfUsername: string;
 
 export function initializeBancho(
 	options: BanchoJs.BanchoClientOptions,
@@ -13,11 +14,20 @@ export function initializeBancho(
 	}
 
 	bancho = new BanchoJs.BanchoClient(options);
+	selfUsername = options.username;
 	debug("{initializeBancho} bancho instance created");
 	// TODO: maybe consider storing messages on the main process too?
 	bancho.on("PM", (message) => {
-		debug(`[PM] ${message.user.ircUsername}: ${message.content}`);
+		debug(
+			`[PM] "${message.user.ircUsername}" -> "${message.recipient.ircUsername}": ${message.content}`,
+		);
+
+		const isIncoming = selfUsername === message.recipient.ircUsername;
+
 		webContents.send("bancho:pm", {
+			channelName: isIncoming
+				? message.user.ircUsername
+				: message.recipient.ircUsername,
 			action: "message",
 			username: message.user.ircUsername,
 			message: message.content,
