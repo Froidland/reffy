@@ -1,13 +1,32 @@
 import type { ElectronAPI } from "@electron-toolkit/preload";
-import { get, writable } from "svelte/store";
+import { writable } from "svelte/store";
 import type { API } from "../../../preload";
 
+type ChannelType = "public" | "private" | "lobby";
+
 type BaseChannel = {
-	type: "public" | "private" | "lobby";
+	type: ChannelType;
 	name: string;
 };
 
-type LobbyChannelHistory =
+type Message = {
+	action: "message";
+	username: string;
+	message: string;
+	timestamp: Date;
+};
+
+type PublicChannel = BaseChannel & {
+	type: "public";
+	history: Message[];
+};
+
+type PrivateChannel = BaseChannel & {
+	type: "private";
+	history: Message[];
+};
+
+type LobbyChannelAction =
 	| {
 			action: "join";
 			username: string;
@@ -54,28 +73,6 @@ type LobbyChannelHistory =
 	  }
 	| Message;
 
-type Message = {
-	action: "message";
-	username: string;
-	message: string;
-	timestamp: Date;
-};
-
-type PublicChannel = BaseChannel & {
-	type: "public";
-	history: Message[];
-};
-
-type PrivateChannel = BaseChannel & {
-	type: "private";
-	history: {
-		action: "message";
-		username: string;
-		message: string;
-		timestamp: Date;
-	}[];
-};
-
 type LobbyChannel = BaseChannel & {
 	type: "lobby";
 	gamemode: "osu" | "mania" | "taiko" | "fruits";
@@ -88,141 +85,115 @@ type LobbyChannel = BaseChannel & {
 		team: "red" | "blue" | null;
 		slot: number;
 	}[];
-	history: LobbyChannelHistory[];
+	history: LobbyChannelAction[];
 };
 
-type Channel = PublicChannel | PrivateChannel | LobbyChannel;
+export type Channel = PublicChannel | PrivateChannel | LobbyChannel;
 
-const channels = writable<{ [name: string]: Channel }>({});
-const currentChannel = writable<Channel | null>(null);
-
-function setCurrentChannel(channelName: string) {
-	const channel = get(channels)[channelName];
-
-	if (!channel) {
-		return;
+export function getChannelTypeFromName(channelName: string): ChannelType {
+	if (channelName.startsWith("#mp_")) {
+		return "lobby";
 	}
 
-	currentChannel.set(channel);
-}
-
-function addChannel(channel: Channel) {
-	const existingChannel = get(channels)[channel.name];
-
-	if (existingChannel) {
-		return;
+	if (channelName.startsWith("#")) {
+		return "public";
 	}
 
-	channels.update((channels) => ({
-		...channels,
-		[channel.name]: channel,
-	}));
+	return "private";
 }
 
-function removeChannel(channelName: string) {
-	channels.update((channels) =>
-		Object.fromEntries(
-			Object.entries(channels).filter(([name]) => name !== channelName),
-		),
+export function createDefaultChannel(channelName: string): Channel {
+	switch (getChannelTypeFromName(channelName)) {
+		case "lobby": {
+			return {
+				type: "lobby",
+				name: channelName,
+				gamemode: "osu",
+				teamMode: "headToHead",
+				size: 0,
+				mods: "",
+				winCondition: "score",
+				players: [],
+				history: [],
+			};
+		}
+		case "public": {
+			return {
+				type: "public",
+				name: channelName,
+				history: [],
+			};
+		}
+		case "private": {
+			return {
+				type: "private",
+				name: channelName,
+				history: [],
+			};
+		}
+	}
+}
+
+function createChannelStore() {
+	const { subscribe, set, update } = writable<Map<string, Channel>>(
+		new Map(),
 	);
-}
 
-function addPrivateMessage(message: Message) {
-	const channel = get(channels)[message.username];
+	function addChannel(channel: Channel) {
+		update((channels) => {
+			if (!channels.get(channel.name)) {
+				channels.set(channel.name, channel);
+			}
 
-	if (!channel) {
-		addChannel({
-			type: "private",
-			name: message.username,
-			history: [
-				{
-					action: "message",
-					username: message.username,
-					message: message.message,
-					timestamp: message.timestamp,
-				},
-			],
+			return channels;
 		});
-
-		return;
 	}
 
-	// just for type inference
-	if (channel.type !== "private") {
-		return;
-	}
+	function removeChannel(channelName: string) {
+		update((channels) => {
+			channels.delete(channelName);
 
-	channel.history.push({
-		action: "message",
-		username: message.username,
-		message: message.message,
-		timestamp: message.timestamp,
-	});
-
-	channels.update((channels) => ({
-		...channels,
-		[message.username]: channel,
-	}));
-
-	// this makes the messages view update itself, there has to be a better way
-	if (get(currentChannel) === channel) {
-		setCurrentChannel(message.username);
-	}
-}
-
-function addChannelMessage(message: Message & { channelName: string }) {
-	const channel = get(channels)[message.channelName];
-
-	if (!channel) {
-		addChannel({
-			type: "public",
-			name: message.channelName,
-			history: [
-				{
-					action: "message",
-					username: message.username,
-					message: message.message,
-					timestamp: message.timestamp,
-				},
-			],
+			return channels;
 		});
-
-		return;
 	}
 
-	channel.history.push({
-		action: "message",
-		username: message.username,
-		message: message.message,
-		timestamp: message.timestamp,
-	});
+	function addMessage(channelName: string, message: Message) {
+		update((channels) => {
+			if (!channels.get(channelName)) {
+				channels.set(channelName, createDefaultChannel(channelName));
+			}
 
-	// this makes the messages view update itself, there has to be a better way
-	if (get(currentChannel) === channel) {
-		setCurrentChannel(message.channelName);
+			const channel = channels.get(channelName);
+			channel.history.push(message);
+
+			channels.set(channelName, channel);
+
+			return channels;
+		});
 	}
+
+	return {
+		subscribe,
+		set,
+		update,
+		addChannel,
+		removeChannel,
+		addMessage,
+	};
 }
+
+export const channels = createChannelStore();
 
 window.electron.ipcRenderer.on("bancho:pm", (_event, message: Message) => {
-	addPrivateMessage(message);
+	channels.addMessage(message.username, message);
 });
 
 window.electron.ipcRenderer.on(
 	"bancho:cm",
 	(_event, message: Message & { channelName: string }) => {
-		addChannelMessage(message);
+		channels.addMessage(message.channelName, message);
 	},
 );
-
-export {
-	channels,
-	currentChannel,
-	setCurrentChannel,
-	addChannel,
-	removeChannel,
-	addPrivateMessage,
-	addChannelMessage,
-};
 
 // I would love to not have to do this in every damn file where I use the API, but it just doesn't work, maybe I'm doing something wrong or I'm just stupid
 declare global {

@@ -2,19 +2,18 @@
 	import PlusIcon from "../components/icons/PlusIcon.svelte";
 	import {
 		channels,
-		currentChannel,
-		setCurrentChannel,
-		addChannel,
+		createDefaultChannel,
+		getChannelTypeFromName,
 	} from "../stores/channels";
 	import { afterUpdate } from "svelte";
-
-	$: arrayChannels = Object.entries($channels);
-	$: currentChannelMessages = $currentChannel?.history;
 
 	let message = "";
 	let newChannelDialog: HTMLDialogElement;
 	let newChannelName = "";
 	let messageListElement: HTMLElement;
+	let currenChannelName: string = "";
+
+	$: currentChannel = $channels.get(currenChannelName);
 
 	function openNewChannelDialog() {
 		newChannelDialog.showModal();
@@ -42,40 +41,14 @@
 			return;
 		}
 
-		if ($channels[channelName.toString()]) {
-			return;
-		}
+		channels.addChannel(createDefaultChannel(channelName.toString()));
 
-		if (channelName.toString().at(0) === "#") {
-			if (channelName.toString().startsWith("#mp_")) {
-				addChannel({
-					type: "lobby",
-					name: channelName.toString(),
-					gamemode: "osu",
-					teamMode: "headToHead",
-					size: 0,
-					mods: "",
-					winCondition: "score",
-					players: [],
-					history: [],
-				});
-				await window.api.joinChannel(channelName.toString());
-
-				return;
-			}
-
-			addChannel({
-				type: "public",
-				name: channelName.toString(),
-				history: [],
-			});
+		if (
+			["lobby", "public"].includes(
+				getChannelTypeFromName(channelName.toString()),
+			)
+		) {
 			await window.api.joinChannel(channelName.toString());
-		} else {
-			addChannel({
-				type: "private",
-				name: channelName.toString(),
-				history: [],
-			});
 		}
 	}
 
@@ -87,9 +60,13 @@
 			return;
 		}
 
-		if ($currentChannel.type !== "private") {
+		if (
+			["lobby", "public"].includes(
+				getChannelTypeFromName(currenChannelName),
+			)
+		) {
 			const res = await window.api.sendChannelMessage(
-				$currentChannel.name,
+				currenChannelName,
 				formMessage.toString(),
 			);
 
@@ -103,7 +80,7 @@
 		}
 
 		const res = await window.api.sendPrivateMessage(
-			$currentChannel.name,
+			currenChannelName,
 			formMessage.toString(),
 		);
 
@@ -164,15 +141,15 @@
 				<!-- TODO: add divider -->
 			</div>
 			<ul class="flex flex-col gap-2">
-				{#each arrayChannels as channel}
+				{#each $channels as [_, channel]}
 					<li class="flex items-center gap-2">
 						<div class="flex-1">
-							<span class="text-white">{channel[1].name}</span>
+							<span class="text-white">{channel.name}</span>
 						</div>
 						<div class="flex-none">
 							<button
 								on:click={() =>
-									setCurrentChannel(channel[1].name)}
+									(currenChannelName = channel.name)}
 								class="rounded bg-pink-400 px-2 py-1 text-sm font-medium transition-colors hover:bg-pink-300"
 								>View</button
 							>
@@ -185,9 +162,9 @@
 	<!-- /Sidebar -->
 	<!-- Main content -->
 	<div class="flex w-full flex-col justify-between">
-		{#if $currentChannel}
+		{#if currenChannelName}
 			<h1 class="p-2 text-xl font-medium text-white">
-				{$currentChannel.name}
+				{currenChannelName}
 			</h1>
 			<!-- Messages -->
 			<!-- TODO: change scrollbar style -->
@@ -195,7 +172,7 @@
 				class="flex h-full flex-col gap-2 overflow-auto px-2 pb-2"
 				bind:this={messageListElement}
 			>
-				{#each currentChannelMessages as message}
+				{#each currentChannel.history as message}
 					{#if message.action === "message"}
 						<li class="flex gap-2">
 							<div>
