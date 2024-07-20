@@ -7,58 +7,55 @@ type BaseChannel = {
 	name: string;
 };
 
-type LobbyChannelHistory = {
-	timestamp: Date;
-} & (
-	| {
-			action: "message";
-			username: string;
-			message: string;
-	  }
+type LobbyChannelHistory =
 	| {
 			action: "join";
 			username: string;
+			timestamp: Date;
 	  }
 	| {
 			action: "leave";
 			username: string;
+			timestamp: Date;
 	  }
 	| {
 			action: "teamChange";
 			username: string;
 			team: "red" | "blue";
+			timestamp: Date;
 	  }
 	| {
 			action: "slotChange";
 			username: string;
 			slot: number;
+			timestamp: Date;
 	  }
 	| {
 			action: "mapChange";
 			username: string;
 			mapId: string;
+			timestamp: Date;
 	  }
 	| {
 			action: "hostClear";
+			timestamp: Date;
 	  }
 	| {
 			action: "matchStart";
+			timestamp: Date;
 	  }
 	| {
 			action: "matchFinish";
+			timestamp: Date;
 	  }
 	| {
 			action: "matchAbort";
+			timestamp: Date;
 	  }
-);
+	| Message;
 
-type PrivateMessage = {
-	username: string;
-	message: string;
-	timestamp: Date;
-};
-
-type PublicMessage = {
+type Message = {
+	action: "message";
 	username: string;
 	message: string;
 	timestamp: Date;
@@ -66,7 +63,7 @@ type PublicMessage = {
 
 type PublicChannel = BaseChannel & {
 	type: "public";
-	history: (PublicMessage & { action: "message" })[];
+	history: Message[];
 };
 
 type PrivateChannel = BaseChannel & {
@@ -130,7 +127,7 @@ function removeChannel(channelName: string) {
 	);
 }
 
-function addPrivateMessage(message: PrivateMessage) {
+function addPrivateMessage(message: Message) {
 	const channel = get(channels)[message.username];
 
 	if (!channel) {
@@ -173,7 +170,7 @@ function addPrivateMessage(message: PrivateMessage) {
 	}
 }
 
-function addChannelMessage(message: PublicMessage & { channelName: string }) {
+function addChannelMessage(message: Message & { channelName: string }) {
 	const channel = get(channels)[message.channelName];
 
 	if (!channel) {
@@ -206,16 +203,13 @@ function addChannelMessage(message: PublicMessage & { channelName: string }) {
 	}
 }
 
-window.electron.ipcRenderer.on(
-	"bancho:pm",
-	(_event, message: PrivateMessage) => {
-		addPrivateMessage(message);
-	},
-);
+window.electron.ipcRenderer.on("bancho:pm", (_event, message: Message) => {
+	addPrivateMessage(message);
+});
 
 window.electron.ipcRenderer.on(
 	"bancho:cm",
-	(_event, message: PublicMessage & { channelName: string }) => {
+	(_event, message: Message & { channelName: string }) => {
 		addChannelMessage(message);
 	},
 );

@@ -18,6 +18,7 @@ export function initializeBancho(
 	bancho.on("PM", (message) => {
 		debug(`[PM] ${message.user.ircUsername}: ${message.content}`);
 		webContents.send("bancho:pm", {
+			action: "message",
 			username: message.user.ircUsername,
 			message: message.content,
 			timestamp: new Date(),
@@ -29,6 +30,7 @@ export function initializeBancho(
 		);
 		webContents.send("bancho:cm", {
 			channelName: message.channel.name,
+			action: "message",
 			username: message.user.ircUsername,
 			message: message.content,
 			timestamp: new Date(),
