@@ -10,20 +10,12 @@ const api = {
 		await ipcRenderer.invoke("bancho:login"),
 	destroyBancho: async (): Promise<void> =>
 		await ipcRenderer.invoke("bancho:destroy"),
-	sendPrivateMessage: async (
-		username: string,
+	sendMessage: async (
+		destination: string,
 		message: string,
 	): Promise<BaseBanchoResponse> =>
-		await ipcRenderer.invoke("bancho:sendPrivateMessage", {
-			username,
-			message,
-		}),
-	sendChannelMessage: async (
-		channelName: string,
-		message: string,
-	): Promise<BaseBanchoResponse> =>
-		await ipcRenderer.invoke("bancho:sendChannelMessage", {
-			channelName,
+		await ipcRenderer.invoke("bancho:sendMessage", {
+			destination,
 			message,
 		}),
 	joinChannel: async (channelName: string): Promise<BaseBanchoResponse> =>

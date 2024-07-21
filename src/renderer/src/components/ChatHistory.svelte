@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { afterUpdate } from "svelte";
 	import ChatEvent from "./ChatEvent.svelte";
-	import { getChannelTypeFromName } from "../utils";
 	import type { Channel } from "../types";
 
 	export let channel: Channel | null;
@@ -26,24 +25,7 @@
 			return;
 		}
 
-		if (
-			["lobby", "public"].includes(getChannelTypeFromName(channel.name))
-		) {
-			const res = await window.api.sendChannelMessage(
-				channel.name,
-				formMessage.toString(),
-			);
-
-			if (!res.success) {
-				// TODO: show error
-				return;
-			}
-
-			message = "";
-			return;
-		}
-
-		const res = await window.api.sendPrivateMessage(
+		const res = await window.api.sendMessage(
 			channel.name,
 			formMessage.toString(),
 		);

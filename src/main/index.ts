@@ -8,8 +8,7 @@ import {
 	initializeBancho,
 	joinChannel,
 	loginBancho,
-	sendChannelMessage,
-	sendPrivateMessage,
+	sendMessage,
 } from "./bancho";
 
 function createWindow() {
@@ -71,14 +70,8 @@ app.whenReady().then(() => {
 	ipcMain.handle("bancho:login", async () => await loginBancho());
 	ipcMain.handle("bancho:destroy", destroyBancho);
 	ipcMain.handle(
-		"bancho:sendPrivateMessage",
-		async (_event, arg) =>
-			await sendPrivateMessage(arg.username, arg.message),
-	);
-	ipcMain.handle(
-		"bancho:sendChannelMessage",
-		async (_event, arg) =>
-			await sendChannelMessage(arg.channelName, arg.message),
+		"bancho:sendMessage",
+		async (_event, arg) => await sendMessage(arg.destination, arg.message),
 	);
 	ipcMain.handle("bancho:joinChannel", async (_event, arg) =>
 		joinChannel(arg.channelName),

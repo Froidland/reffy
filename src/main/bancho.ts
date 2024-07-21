@@ -112,22 +112,40 @@ export async function loginBancho() {
 	}
 }
 
-export async function sendPrivateMessage(
-	username: string,
-	message: string,
-): Promise<any> {
+export async function sendMessage(destination: string, message: string) {
 	if (!bancho) {
-		debug("{sendPrivateMessage} bancho not initialized");
+		debug("{sendMessage} bancho not initialized");
 		return {
 			success: false,
 			message: "Bancho not initialized",
 		};
 	}
 
+	const isChannel = destination.startsWith("#");
+
 	try {
-		const user = bancho.getUser(username);
+		if (isChannel) {
+			const channel = bancho.getChannel(destination);
+			if (!channel) {
+				debug("{sendMessage} channel not found", destination);
+				return {
+					success: false,
+					message: "Channel not found",
+				};
+			}
+
+			await channel.sendMessage(message);
+			debug("{sendMessage} message sent to", destination, message);
+
+			return {
+				success: true,
+				message: `Message sent to ${destination}`,
+			};
+		}
+
+		const user = bancho.getUser(destination);
 		if (!user) {
-			debug("{sendPrivateMessage} user not found", username);
+			debug("{sendMessage} user not found", destination);
 			return {
 				success: false,
 				message: "User not found",
@@ -135,50 +153,14 @@ export async function sendPrivateMessage(
 		}
 
 		await user.sendMessage(message);
-		debug("{sendPrivateMessage} message sent", username, message);
+		debug("{sendMessage} message sent to", destination, message);
 
 		return {
 			success: true,
-			message: `Message sent to ${username}`,
+			message: `Message sent to ${destination}`,
 		};
 	} catch (err) {
-		debug("{sendPrivateMessage}", err);
-		return {
-			success: false,
-			message: (err as Error).message,
-		};
-	}
-}
-
-export async function sendChannelMessage(channelName: string, message: string) {
-	if (!bancho) {
-		debug("{sendChannelMessage} bancho not initialized");
-		return {
-			success: false,
-			message: "Bancho not initialized",
-		};
-	}
-
-	try {
-		const channel = bancho.getChannel(channelName);
-		// I'm not sure if channel can be falsy
-		if (!channel) {
-			debug("{sendChannelMessage} channel not found", channelName);
-			return {
-				success: false,
-				message: "Channel not found",
-			};
-		}
-
-		await channel.sendMessage(message);
-		debug("{sendChannelMessage} message sent", channelName, message);
-
-		return {
-			success: true,
-			message: `Message sent to ${channelName}`,
-		};
-	} catch (err) {
-		debug("{sendChannelMessage}", err);
+		debug("{sendMessage}", err);
 		return {
 			success: false,
 			message: (err as Error).message,
