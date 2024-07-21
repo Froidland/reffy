@@ -7,7 +7,7 @@ type BaseChannel = {
 	name: string;
 };
 
-type Message = {
+export type Message = {
 	action: "message";
 	username: string;
 	message: string;
@@ -24,7 +24,7 @@ type PrivateChannel = BaseChannel & {
 	history: Message[];
 };
 
-type LobbyChannelAction =
+export type LobbyAction =
 	| {
 			action: "join";
 			username: string;
@@ -68,8 +68,9 @@ type LobbyChannelAction =
 	| {
 			action: "matchAbort";
 			timestamp: Date;
-	  }
-	| Message;
+	  };
+
+export type ChannelEvent = LobbyAction | Message;
 
 type LobbyChannel = BaseChannel & {
 	type: "lobby";
@@ -83,7 +84,7 @@ type LobbyChannel = BaseChannel & {
 		team: "red" | "blue" | null;
 		slot: number;
 	}[];
-	history: LobbyChannelAction[];
+	history: ChannelEvent[];
 };
 
 export type Channel = PublicChannel | PrivateChannel | LobbyChannel;

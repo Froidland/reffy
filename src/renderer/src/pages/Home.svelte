@@ -6,8 +6,8 @@
 		getChannelTypeFromName,
 	} from "../stores/channels";
 	import { afterUpdate } from "svelte";
-	import { getFormattedTimestamp } from "../utils";
 	import { clsx } from "clsx";
+	import ChatEvent from "../components/ChatEvent.svelte";
 
 	let message = "";
 	let newChannelDialog: HTMLDialogElement;
@@ -173,23 +173,8 @@
 				class="flex h-full flex-col gap-2 overflow-auto px-2 pb-2"
 				bind:this={messageListElement}
 			>
-				{#each currentChannel.history as message}
-					{#if message.action === "message"}
-						<li class="flex gap-2">
-							<div>
-								<span class="text-zinc-300"
-									>[{getFormattedTimestamp(
-										message.timestamp,
-									)}]
-								</span>
-								<span class="font-bold text-[#f9c160]"
-									>{message.username}: {" "}
-								</span><span class="text-white"
-									>{message.message}</span
-								>
-							</div>
-						</li>
-					{/if}
+				{#each currentChannel.history as event}
+					<ChatEvent {event} />
 				{/each}
 			</ul>
 			<!-- /Messages -->
