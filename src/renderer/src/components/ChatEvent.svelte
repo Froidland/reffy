@@ -18,7 +18,7 @@
 			</span>
 			<span class="font-bold text-[#f9c160]"
 				>{event.username}: {" "}
-			</span><span class="text-white">{event.message}</span>
+			</span><span class="break-all text-white">{event.message}</span>
 		</div>
 	</li>
 {/if}
