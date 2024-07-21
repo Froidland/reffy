@@ -7,6 +7,7 @@
 	} from "../stores/channels";
 	import { afterUpdate } from "svelte";
 	import { getFormattedTimestamp } from "../utils";
+	import { clsx } from "clsx";
 
 	let message = "";
 	let newChannelDialog: HTMLDialogElement;
@@ -145,7 +146,12 @@
 			<ul class="flex flex-col">
 				{#each $channels as [_, channel]}
 					<button
-						class="rounded bg-zinc-800 px-2 py-2 text-left text-white hover:bg-zinc-700 active:bg-zinc-700"
+						class={clsx(
+							"rounded px-2 py-2 text-left text-white",
+							currentChannelName === channel.name
+								? "bg-zinc-600"
+								: "bg-zinc-800 hover:bg-zinc-700",
+						)}
 						on:click={() => (currentChannelName = channel.name)}
 					>
 						{channel.name}
