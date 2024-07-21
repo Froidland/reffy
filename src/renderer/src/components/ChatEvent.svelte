@@ -2,7 +2,11 @@
 	import type { ChannelEvent } from "../types";
 	import { getFormattedTimestamp } from "../utils";
 
-	export let event: ChannelEvent;
+	type Props = {
+		event: ChannelEvent;
+	};
+
+	let { event }: Props = $props();
 </script>
 
 <!-- TODO: implement logic and design for all channel events -->

@@ -1,16 +1,20 @@
 <script lang="ts">
-	import { afterUpdate } from "svelte";
 	import ChatEvent from "./ChatEvent.svelte";
 	import type { Channel } from "../types";
+	import ChatMessageForm from "./ChatMessageForm.svelte";
 
-	export let channel: Channel | null;
+	type Props = {
+		channel: Channel;
+	};
 
-	let eventListElement: HTMLUListElement;
-	let message = "";
+	let { channel = null }: Props = $props();
+
+	let eventListElement: HTMLUListElement = $state();
+	let message = $state("");
 
 	// TODO: add ability to disable scroll to bottom (or manually activate it)
 	// TODO: if the channel is changed, scroll to bottom with no smooth scroll
-	afterUpdate(() => {
+	$effect(() => {
 		if (eventListElement) {
 			eventListElement.scroll({
 				top: eventListElement.scrollHeight,
@@ -20,6 +24,7 @@
 	});
 
 	async function handleSendMessage(event: SubmitEvent) {
+		event.preventDefault();
 		const formData = new FormData(event.target as HTMLFormElement);
 		const formMessage = formData.get("message");
 
@@ -57,25 +62,6 @@
 			{/each}
 		</ul>
 		<!-- /Messages -->
-		<!-- Message input -->
-		<div class="flex flex-col gap-4 p-2">
-			<form
-				on:submit|preventDefault={handleSendMessage}
-				class="flex gap-2"
-			>
-				<input
-					class="w-full rounded bg-zinc-700 px-2 py-2 text-white"
-					type="text"
-					name="message"
-					placeholder="Message"
-					bind:value={message}
-				/>
-				<button
-					class="rounded bg-pink-400 px-2 py-2 font-medium transition-colors hover:bg-pink-300"
-					type="submit">Send</button
-				>
-			</form>
-		</div>
-		<!-- /Message input -->
+		<ChatMessageForm bind:message onsubmit={handleSendMessage} />
 	{/if}
 </div>

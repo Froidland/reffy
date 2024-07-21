@@ -2,8 +2,8 @@
 	import PlusIcon from "../components/icons/PlusIcon.svelte";
 	import { channels } from "../stores/channels";
 	import { clsx } from "clsx";
-	import ChatHistory from "../components/ChatHistory.svelte";
 	import { createDefaultChannel, getChannelTypeFromName } from "../utils";
+	import ChatBox from "../components/ChatBox.svelte";
 
 	let newChannelDialog: HTMLDialogElement;
 	let newChannelName = "";
@@ -101,6 +101,6 @@
 	</div>
 	<!-- /Sidebar -->
 	<!-- Main content -->
-	<ChatHistory channel={currentChannel} />
+	<ChatBox channel={currentChannel} />
 	<!-- /Main content -->
 </main>

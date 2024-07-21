@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { route } from "../stores/route";
+	import { router } from "../stores/route.svelte";
 
 	async function handleLogin(event: SubmitEvent) {
+		event.preventDefault();
 		const formData = new FormData(event.target as HTMLFormElement);
 
 		const username = formData.get("username");
@@ -27,7 +28,7 @@
 
 		errorMessage = undefined;
 		loading = false;
-		route.set("home");
+		router.set("home");
 	}
 
 	let errorMessage: string | undefined;
@@ -36,7 +37,7 @@
 
 <main class="flex h-screen items-center justify-center bg-zinc-900">
 	<form
-		on:submit|preventDefault={handleLogin}
+		onsubmit={handleLogin}
 		class="flex w-80 flex-col gap-4 rounded-lg bg-zinc-800 p-8"
 	>
 		<h1 class="text-center text-xl font-medium text-white">IRC Login</h1>
