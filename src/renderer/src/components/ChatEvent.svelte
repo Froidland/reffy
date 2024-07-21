@@ -17,7 +17,10 @@
 				>[{getFormattedTimestamp(event.timestamp)}]
 			</span>
 			<span class="font-bold text-[#f9c160]"
-				>{event.username}: {" "}
+				><a
+					href="https://osu.ppy.sh/users/{event.username}"
+					target="_blank">{event.username}</a
+				>: {" "}
 			</span><span class="break-all text-white">{event.message}</span>
 		</div>
 	</li>
