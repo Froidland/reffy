@@ -1,13 +1,10 @@
 <script lang="ts">
 	import PlusIcon from "../components/icons/PlusIcon.svelte";
-	import {
-		channels,
-		createDefaultChannel,
-		getChannelTypeFromName,
-	} from "../stores/channels";
+	import { channels } from "../stores/channels";
 	import { afterUpdate } from "svelte";
 	import { clsx } from "clsx";
 	import ChatHistory from "../components/ChatHistory.svelte";
+	import { createDefaultChannel, getChannelTypeFromName } from "../utils";
 
 	let newChannelDialog: HTMLDialogElement;
 	let newChannelName = "";

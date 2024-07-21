@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { afterUpdate } from "svelte";
-	import { getChannelTypeFromName, type Channel } from "../stores/channels";
 	import ChatEvent from "./ChatEvent.svelte";
+	import { getChannelTypeFromName } from "../utils";
+	import type { Channel } from "../types";
 
 	export let channel: Channel | null;
 

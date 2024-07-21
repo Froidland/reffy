@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { ChannelEvent } from "../stores/channels";
+	import type { ChannelEvent } from "../types";
 	import { getFormattedTimestamp } from "../utils";
 
 	export let event: ChannelEvent;
