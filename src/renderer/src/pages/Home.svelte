@@ -11,10 +11,6 @@
 
 	$: currentChannel = $channels.get(currentChannelName);
 
-	function openNewChannelDialog() {
-		newChannelDialog.showModal();
-	}
-
 	// TODO: extract these functions to a separate file
 	async function handleAddChannel(event: SubmitEvent) {
 		newChannelDialog.close();
@@ -78,7 +74,7 @@
 			<div class="flex items-center justify-between">
 				<h1 class="text-xl font-medium text-white">Chats</h1>
 				<button
-					on:click={openNewChannelDialog}
+					on:click={() => newChannelDialog.showModal()}
 					class="rounded bg-pink-400 px-1 py-1 text-sm font-medium transition-colors hover:bg-pink-300"
 					><PlusIcon /></button
 				>
