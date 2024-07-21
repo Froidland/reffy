@@ -2,6 +2,7 @@
 	import ChatEvent from "./ChatEvent.svelte";
 	import type { Channel } from "../types";
 	import ChatMessageForm from "./ChatMessageForm.svelte";
+	import { tick } from "svelte";
 
 	type Props = {
 		channel: Channel;
@@ -14,13 +15,18 @@
 
 	// TODO: add ability to disable scroll to bottom (or manually activate it)
 	// TODO: if the channel is changed, scroll to bottom with no smooth scroll
-	$effect(() => {
-		if (eventListElement) {
+	$effect.pre(() => {
+		if (!eventListElement) {
+			return;
+		}
+		channel.history;
+
+		tick().then(() => {
 			eventListElement.scroll({
 				top: eventListElement.scrollHeight,
 				behavior: "smooth",
 			});
-		}
+		});
 	});
 
 	async function handleSendMessage(event: SubmitEvent) {
