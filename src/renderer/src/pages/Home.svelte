@@ -12,9 +12,9 @@
 	let newChannelDialog: HTMLDialogElement;
 	let newChannelName = "";
 	let messageListElement: HTMLElement;
-	let currenChannelName: string = "";
+	let currentChannelName: string = "";
 
-	$: currentChannel = $channels.get(currenChannelName);
+	$: currentChannel = $channels.get(currentChannelName);
 
 	function openNewChannelDialog() {
 		newChannelDialog.showModal();
@@ -43,7 +43,7 @@
 		}
 
 		channels.addChannel(createDefaultChannel(channelName.toString()));
-		currenChannelName = channelName.toString();
+		currentChannelName = channelName.toString();
 
 		if (
 			["lobby", "public"].includes(
@@ -64,11 +64,11 @@
 
 		if (
 			["lobby", "public"].includes(
-				getChannelTypeFromName(currenChannelName),
+				getChannelTypeFromName(currentChannelName),
 			)
 		) {
 			const res = await window.api.sendChannelMessage(
-				currenChannelName,
+				currentChannelName,
 				formMessage.toString(),
 			);
 
@@ -82,7 +82,7 @@
 		}
 
 		const res = await window.api.sendPrivateMessage(
-			currenChannelName,
+			currentChannelName,
 			formMessage.toString(),
 		);
 
@@ -130,7 +130,7 @@
 <main class="flex h-screen bg-zinc-900">
 	<!-- Sidebar -->
 	<div class="flex w-64 flex-col bg-zinc-800">
-		<div class="flex flex-col p-4">
+		<div class="flex flex-col px-2 py-4">
 			<div class="flex items-center justify-between">
 				<h1 class="text-xl font-medium text-white">Chats</h1>
 				<button
@@ -139,24 +139,17 @@
 					><PlusIcon /></button
 				>
 			</div>
-			<div class="h-5">
+			<div class="h-3">
 				<!-- TODO: add divider -->
 			</div>
-			<ul class="flex flex-col gap-2">
+			<ul class="flex flex-col">
 				{#each $channels as [_, channel]}
-					<li class="flex items-center gap-2">
-						<div class="flex-1">
-							<span class="text-white">{channel.name}</span>
-						</div>
-						<div class="flex-none">
-							<button
-								on:click={() =>
-									(currenChannelName = channel.name)}
-								class="rounded bg-pink-400 px-2 py-1 text-sm font-medium transition-colors hover:bg-pink-300"
-								>View</button
-							>
-						</div>
-					</li>
+					<button
+						class="rounded bg-zinc-800 px-2 py-2 text-left text-white hover:bg-zinc-700 active:bg-zinc-700"
+						on:click={() => (currentChannelName = channel.name)}
+					>
+						{channel.name}
+					</button>
 				{/each}
 			</ul>
 		</div>
@@ -164,9 +157,9 @@
 	<!-- /Sidebar -->
 	<!-- Main content -->
 	<div class="flex w-full flex-col justify-between">
-		{#if currenChannelName}
+		{#if currentChannelName}
 			<h1 class="p-2 text-xl font-medium text-white">
-				{currenChannelName}
+				{currentChannelName}
 			</h1>
 			<!-- Messages -->
 			<!-- TODO: change scrollbar style -->
