@@ -6,13 +6,13 @@
 
 	export let channel: Channel | null;
 
-	let messageListElement: HTMLElement;
+	let eventListElement: HTMLUListElement;
 	let message = "";
 
 	afterUpdate(() => {
-		if (messageListElement) {
-			messageListElement.scroll({
-				top: messageListElement.scrollHeight,
+		if (eventListElement) {
+			eventListElement.scroll({
+				top: eventListElement.scrollHeight,
 				behavior: "smooth",
 			});
 		}
@@ -66,7 +66,7 @@
 		<!-- TODO: change scrollbar style -->
 		<ul
 			class="flex h-full flex-col gap-2 overflow-auto px-2 pb-2"
-			bind:this={messageListElement}
+			bind:this={eventListElement}
 		>
 			{#each channel.history as event}
 				<ChatEvent {event} />
