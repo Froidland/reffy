@@ -8,6 +8,8 @@
 	let eventListElement: HTMLUListElement;
 	let message = "";
 
+	// TODO: add ability to disable scroll to bottom (or manually activate it)
+	// TODO: if the channel is changed, scroll to bottom with no smooth scroll
 	afterUpdate(() => {
 		if (eventListElement) {
 			eventListElement.scroll({

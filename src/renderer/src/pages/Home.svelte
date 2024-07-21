@@ -1,14 +1,12 @@
 <script lang="ts">
 	import PlusIcon from "../components/icons/PlusIcon.svelte";
 	import { channels } from "../stores/channels";
-	import { afterUpdate } from "svelte";
 	import { clsx } from "clsx";
 	import ChatHistory from "../components/ChatHistory.svelte";
 	import { createDefaultChannel, getChannelTypeFromName } from "../utils";
 
 	let newChannelDialog: HTMLDialogElement;
 	let newChannelName = "";
-	let messageListElement: HTMLElement;
 	let currentChannelName: string = "";
 
 	$: currentChannel = $channels.get(currentChannelName);
@@ -16,17 +14,6 @@
 	function openNewChannelDialog() {
 		newChannelDialog.showModal();
 	}
-
-	// TODO: add ability to disable scroll to bottom (or manually activate it)
-	// TODO: if the channel is changed, scroll to bottom with no smooth scroll
-	afterUpdate(() => {
-		if (messageListElement) {
-			messageListElement.scroll({
-				top: messageListElement.scrollHeight,
-				behavior: "smooth",
-			});
-		}
-	});
 
 	// TODO: extract these functions to a separate file
 	async function handleAddChannel(event: SubmitEvent) {
