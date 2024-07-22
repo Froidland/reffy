@@ -71,7 +71,8 @@
 			>
 			<button
 				class="rounded bg-red-400 px-2 py-2 font-medium transition-colors hover:bg-red-300"
-				type="submit">Cancel</button
+				type="button"
+				onclick={() => internalDialogElement.close()}>Cancel</button
 			>
 		</div>
 	</form>
