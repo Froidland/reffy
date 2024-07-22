@@ -54,7 +54,7 @@
 						on:click={() => (currentChannelName = channel.name)}
 					>
 						{channel.name}
-						<div class="mr-1 flex items-center justify-center">
+						<div class="flex items-center justify-center">
 							<!-- svelte-ignore a11y_click_events_have_key_events -->
 							<div
 								role="button"
