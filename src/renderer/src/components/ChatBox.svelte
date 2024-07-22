@@ -5,7 +5,7 @@
 	import { tick } from "svelte";
 
 	type Props = {
-		channel: Channel;
+		channel: Channel | null;
 	};
 
 	let { channel = null }: Props = $props();
@@ -16,7 +16,7 @@
 	// TODO: add ability to disable scroll to bottom (or manually activate it)
 	// TODO: if the channel is changed, scroll to bottom with no smooth scroll
 	$effect.pre(() => {
-		if (!eventListElement) {
+		if (!eventListElement || !channel) {
 			return;
 		}
 		channel.history;
@@ -69,5 +69,9 @@
 		</ul>
 		<!-- /Messages -->
 		<ChatMessageForm bind:message onsubmit={handleSendMessage} />
+	{:else}
+		<div class="flex h-full w-full items-center justify-center">
+			<p class="italic text-zinc-600">No channel selected</p>
+		</div>
 	{/if}
 </div>

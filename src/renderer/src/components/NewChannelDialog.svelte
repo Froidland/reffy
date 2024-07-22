@@ -23,6 +23,7 @@
 		const channelNameValue = formData.get("channelName");
 
 		if (!channelNameValue) {
+			loading = false;
 			return;
 		}
 
@@ -31,7 +32,13 @@
 				getChannelTypeFromName(channelName.toString()),
 			)
 		) {
-			await window.api.joinChannel(channelName.toString());
+			const res = await window.api.joinChannel(channelName.toString());
+
+			if (!res.success) {
+				// TODO: show error
+				loading = false;
+				return;
+			}
 		}
 
 		channels.addChannel(createDefaultChannel(channelNameValue.toString()));
@@ -66,7 +73,7 @@
 		<div class="flex flex-col gap-2">
 			<button
 				class="rounded bg-pink-400 px-2 py-2 font-medium transition-colors hover:bg-pink-300 disabled:opacity-50"
-				disabled={loading}
+				disabled={loading || !channelName}
 				type="submit">Add</button
 			>
 			<button

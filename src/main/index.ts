@@ -7,6 +7,7 @@ import {
 	disconnectBancho,
 	initializeBancho,
 	joinChannel,
+	leaveChannel,
 	loginBancho,
 	sendMessage,
 } from "./bancho";
@@ -75,6 +76,9 @@ app.whenReady().then(() => {
 	);
 	ipcMain.handle("bancho:joinChannel", async (_event, arg) =>
 		joinChannel(arg.channelName),
+	);
+	ipcMain.handle("bancho:leaveChannel", async (_event, arg) =>
+		leaveChannel(arg.channelName),
 	);
 
 	app.on("activate", function () {

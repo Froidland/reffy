@@ -4,11 +4,22 @@
 	import { clsx } from "clsx";
 	import ChatBox from "../components/ChatBox.svelte";
 	import NewChannelDialog from "../components/NewChannelDialog.svelte";
+	import CrossIcon from "../components/icons/CrossIcon.svelte";
+	import { getChannelTypeFromName } from "../utils";
 
 	let newChannelDialog: HTMLDialogElement;
 	let currentChannelName: string = "";
 
-	$: currentChannel = $channels.get(currentChannelName);
+	$: currentChannel = $channels.get(currentChannelName) || null;
+
+	async function handleCloseChannel(channelName: string) {
+		if (getChannelTypeFromName(channelName) !== "private") {
+			window.api.leaveChannel(channelName);
+		}
+
+		currentChannelName = "";
+		channels.removeChannel(channelName);
+	}
 </script>
 
 <!--! double binding looks like a bad idea, surely there's a better way, maybe a callback for currentChannelName -->
@@ -24,7 +35,7 @@
 				<h1 class="text-xl font-medium text-white">Chats</h1>
 				<button
 					on:click={() => newChannelDialog.showModal()}
-					class="rounded bg-pink-400 px-1 py-1 text-sm font-medium transition-colors hover:bg-pink-300"
+					class="rounded bg-pink-400 px-1 py-1 text-sm transition-colors hover:bg-pink-300"
 					><PlusIcon /></button
 				>
 			</div>
@@ -35,19 +46,32 @@
 				{#each $channels as [_, channel]}
 					<button
 						class={clsx(
-							"rounded px-2 py-2 text-left text-white",
+							"flex items-center justify-between rounded px-2 py-1",
 							currentChannelName === channel.name
-								? "bg-zinc-600"
-								: "bg-zinc-800 hover:bg-zinc-700",
+								? "bg-zinc-600 text-pink-300"
+								: "bg-zinc-800  text-white hover:bg-zinc-700",
 						)}
 						on:click={() => (currentChannelName = channel.name)}
 					>
 						{channel.name}
+						<div class="mr-1 flex items-center justify-center">
+							<!-- svelte-ignore a11y_click_events_have_key_events -->
+							<div
+								role="button"
+								tabindex="0"
+								class="rounded-full p-2 !text-zinc-400 transition-colors hover:bg-zinc-500 hover:!text-white"
+								on:click={() =>
+									handleCloseChannel(channel.name)}
+							>
+								<CrossIcon />
+							</div>
+						</div>
 					</button>
 				{/each}
 			</ul>
 		</div>
 	</div>
 	<!-- /Sidebar -->
+	<!-- TODO: fix when closing a channel, the chat remains -->
 	<ChatBox channel={currentChannel} />
 </main>

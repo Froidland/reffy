@@ -203,3 +203,38 @@ export async function joinChannel(channelName: string) {
 		};
 	}
 }
+
+export async function leaveChannel(channelName: string) {
+	if (!bancho) {
+		debug("{leaveChannel} bancho not initialized");
+		return {
+			success: false,
+			message: "Bancho not initialized",
+		};
+	}
+
+	try {
+		const channel = bancho.getChannel(channelName);
+		if (!channel) {
+			debug("{leaveChannel} channel not found", channelName);
+			return {
+				success: false,
+				message: "Channel not found",
+			};
+		}
+
+		await channel.leave();
+		debug("{leaveChannel} left channel", channelName);
+
+		return {
+			success: true,
+			message: `Left ${channelName}`,
+		};
+	} catch (err) {
+		debug("{leaveChannel}", err);
+		return {
+			success: false,
+			message: (err as Error).message,
+		};
+	}
+}
