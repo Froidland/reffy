@@ -19,7 +19,7 @@
 		if (!eventListElement || !channel) {
 			return;
 		}
-		channel.history;
+		channel.history.length;
 
 		tick().then(() => {
 			eventListElement.scroll({

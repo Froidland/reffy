@@ -1,16 +1,19 @@
 <script lang="ts">
 	import PlusIcon from "../components/icons/PlusIcon.svelte";
-	import { channels } from "../stores/channels";
 	import { clsx } from "clsx";
 	import ChatBox from "../components/ChatBox.svelte";
 	import NewChannelDialog from "../components/NewChannelDialog.svelte";
 	import CrossIcon from "../components/icons/CrossIcon.svelte";
 	import { getChannelTypeFromName } from "../utils";
+	import { channels } from "../stores/channels.svelte";
+	import type { Channel } from "../types";
 
-	let newChannelDialog: HTMLDialogElement;
-	let currentChannelName: string = "";
+	let newChannelDialog: HTMLDialogElement = $state();
+	let currentChannelName: string = $state("");
 
-	$: currentChannel = $channels.get(currentChannelName) || null;
+	let currentChannel = $derived<Channel | null>(
+		channels.get(currentChannelName) || null,
+	);
 
 	async function handleCloseChannel(channelName: string) {
 		if (getChannelTypeFromName(channelName) !== "private") {
@@ -34,8 +37,8 @@
 			<div class="flex items-center justify-between">
 				<h1 class="text-xl font-medium text-white">Chats</h1>
 				<button
-					on:click={() => newChannelDialog.showModal()}
-					class="rounded bg-pink-400 px-1 py-1 text-sm transition-colors hover:bg-pink-300"
+					onclick={() => newChannelDialog.showModal()}
+					class="rounded bg-pink-400 p-1 text-sm transition-colors hover:bg-pink-300"
 					><PlusIcon /></button
 				>
 			</div>
@@ -43,7 +46,7 @@
 				<!-- TODO: add divider -->
 			</div>
 			<ul class="flex flex-col">
-				{#each $channels as [_, channel]}
+				{#each channels.values as [_, channel]}
 					<button
 						class={clsx(
 							"flex items-center justify-between rounded px-2 py-1",
@@ -51,7 +54,7 @@
 								? "bg-zinc-600 text-pink-300"
 								: "bg-zinc-800  text-white hover:bg-zinc-700",
 						)}
-						on:click={() => (currentChannelName = channel.name)}
+						onclick={() => (currentChannelName = channel.name)}
 					>
 						{channel.name}
 						<div class="flex items-center justify-center">
@@ -60,8 +63,7 @@
 								role="button"
 								tabindex="0"
 								class="rounded-full p-2 !text-zinc-400 transition-colors hover:bg-zinc-500 hover:!text-white"
-								on:click={() =>
-									handleCloseChannel(channel.name)}
+								onclick={() => handleCloseChannel(channel.name)}
 							>
 								<CrossIcon />
 							</div>

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { channels } from "../stores/channels";
+	import { channels } from "../stores/channels.svelte";
 	import { createDefaultChannel, getChannelTypeFromName } from "../utils";
 
 	type Props = {
