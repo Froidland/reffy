@@ -12,7 +12,7 @@
 <!-- TODO: implement logic and design for all channel events -->
 {#if event.action === "message"}
 	<li class="flex gap-2">
-		<p class="wrap">
+		<p class="[overflow-wrap:anywhere]">
 			<span class="text-zinc-300"
 				>[{getFormattedTimestamp(event.timestamp)}]
 			</span>
@@ -25,9 +25,3 @@
 		</p>
 	</li>
 {/if}
-
-<style>
-	.wrap {
-		overflow-wrap: anywhere;
-	}
-</style>
