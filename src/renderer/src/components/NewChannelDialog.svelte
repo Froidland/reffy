@@ -1,20 +1,15 @@
-<script lang="ts">
+<script lang="ts" context="module">
 	import { channels } from "../stores/channels.svelte";
+	import { config } from "../stores/config.svelte";
 	import { createDefaultChannel, getChannelTypeFromName } from "../utils";
 
-	type Props = {
-		currentChannelName: string;
-		dialogElement: HTMLDialogElement;
-	};
-
-	let {
-		currentChannelName = $bindable(),
-		dialogElement = $bindable(),
-	}: Props = $props();
-
-	let internalDialogElement: HTMLDialogElement = $state();
+	let dialogElement: HTMLDialogElement = $state();
 	let loading = $state(false);
 	let channelName = $state("");
+
+	export function openNewChannelDialog() {
+		dialogElement.showModal();
+	}
 
 	async function handleAddChannel(event: SubmitEvent) {
 		event.preventDefault();
@@ -42,15 +37,14 @@
 		}
 
 		channels.addChannel(createDefaultChannel(channelNameValue.toString()));
-		currentChannelName = channelNameValue.toString();
+		config.activeChannelName = channelNameValue.toString();
 		loading = false;
 		channelName = "";
-		internalDialogElement.close();
+		dialogElement.close();
 	}
 </script>
 
 <dialog
-	bind:this={internalDialogElement}
 	bind:this={dialogElement}
 	class="rounded-xl bg-zinc-800 p-8 backdrop:bg-black/50"
 >
@@ -79,7 +73,7 @@
 			<button
 				class="rounded bg-red-400 px-2 py-2 font-medium transition-colors hover:bg-red-300"
 				type="button"
-				onclick={() => internalDialogElement.close()}>Cancel</button
+				onclick={() => dialogElement.close()}>Cancel</button
 			>
 		</div>
 	</form>

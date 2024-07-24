@@ -2,17 +2,17 @@
 	import PlusIcon from "../components/icons/PlusIcon.svelte";
 	import { clsx } from "clsx";
 	import ChatBox from "../components/ChatBox.svelte";
-	import NewChannelDialog from "../components/NewChannelDialog.svelte";
+	import NewChannelDialog, {
+		openNewChannelDialog,
+	} from "../components/NewChannelDialog.svelte";
 	import CrossIcon from "../components/icons/CrossIcon.svelte";
 	import { getChannelTypeFromName } from "../utils";
 	import { channels } from "../stores/channels.svelte";
 	import type { Channel } from "../types";
-
-	let newChannelDialog: HTMLDialogElement = $state();
-	let currentChannelName: string = $state("");
+	import { config } from "../stores/config.svelte";
 
 	let currentChannel = $derived<Channel | null>(
-		channels.get(currentChannelName) || null,
+		channels.get(config.activeChannelName) || null,
 	);
 
 	async function handleCloseChannel(channelName: string) {
@@ -20,16 +20,13 @@
 			window.api.leaveChannel(channelName);
 		}
 
-		currentChannelName = "";
+		config.activeChannelName = "";
 		channels.removeChannel(channelName);
 	}
 </script>
 
 <!--! double binding looks like a bad idea, surely there's a better way, maybe a callback for currentChannelName -->
-<NewChannelDialog
-	bind:currentChannelName
-	bind:dialogElement={newChannelDialog}
-/>
+<NewChannelDialog />
 <main class="flex h-screen bg-zinc-900">
 	<!-- Sidebar -->
 	<div class="flex w-64 flex-col bg-zinc-800">
@@ -37,7 +34,7 @@
 			<div class="flex items-center justify-between">
 				<h1 class="text-xl font-medium text-white">Chats</h1>
 				<button
-					onclick={() => newChannelDialog.showModal()}
+					onclick={() => openNewChannelDialog()}
 					class="rounded bg-pink-400 p-1 text-sm transition-colors hover:bg-pink-300"
 					><PlusIcon /></button
 				>
@@ -50,11 +47,12 @@
 					<button
 						class={clsx(
 							"flex items-center justify-between rounded px-2 py-1",
-							currentChannelName === channel.name
+							config.activeChannelName === channel.name
 								? "bg-zinc-600 text-pink-300"
 								: "bg-zinc-800  text-white hover:bg-zinc-700",
 						)}
-						onclick={() => (currentChannelName = channel.name)}
+						onclick={() =>
+							(config.activeChannelName = channel.name)}
 					>
 						{channel.name}
 						<div class="flex items-center justify-center">

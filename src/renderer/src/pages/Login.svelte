@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { config } from "../stores/config.svelte";
 	import { router } from "../stores/route.svelte";
 
 	async function handleLogin(event: SubmitEvent) {
@@ -7,6 +8,7 @@
 
 		const username = formData.get("username");
 		const password = formData.get("password");
+		const apiKey = formData.get("apiKey");
 
 		if (!username || !password) {
 			errorMessage = "Please enter a username and password";
@@ -14,9 +16,10 @@
 		}
 
 		loading = true;
-		window.api.initializeBancho({
+		await window.api.initializeBancho({
 			username: username.toString(),
 			password: password.toString(),
+			apiKey: apiKey?.toString() || undefined,
 		});
 
 		const res = await window.api.loginBancho();
@@ -26,6 +29,7 @@
 			return;
 		}
 
+		config.hasApiKey = Boolean(apiKey);
 		errorMessage = undefined;
 		loading = false;
 		router.set("home");
@@ -35,6 +39,7 @@
 	let loading = false;
 </script>
 
+<!-- TODO: make this prettier lol -->
 <main class="flex h-screen items-center justify-center bg-zinc-900">
 	<form
 		onsubmit={handleLogin}
@@ -52,6 +57,12 @@
 			type="password"
 			name="password"
 			placeholder="Password"
+		/>
+		<input
+			class="rounded bg-zinc-700 px-2 py-2 text-white"
+			type="password"
+			name="apiKey"
+			placeholder="API Key (optional)"
 		/>
 		{#if errorMessage}
 			<p class="text-red-500">{errorMessage}</p>
