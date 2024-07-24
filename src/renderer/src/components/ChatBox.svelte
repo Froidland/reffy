@@ -21,12 +21,17 @@
 		}
 		channel.history.length;
 
-		tick().then(() => {
-			eventListElement.scroll({
-				top: eventListElement.scrollHeight,
-				behavior: "smooth",
+		if (
+			eventListElement.offsetHeight + eventListElement.scrollTop >
+			eventListElement.scrollHeight - 20
+		) {
+			tick().then(() => {
+				eventListElement.scroll({
+					top: eventListElement.scrollHeight,
+					behavior: "smooth",
+				});
 			});
-		});
+		}
 	});
 
 	async function handleSendMessage(event: SubmitEvent) {
