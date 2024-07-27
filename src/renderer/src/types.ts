@@ -6,7 +6,7 @@ export type BaseChannel = {
 };
 
 export type Message = {
-	action: "message";
+	type: "message";
 	username: string;
 	message: string;
 	timestamp: Date;
@@ -22,53 +22,53 @@ export type PrivateChannel = BaseChannel & {
 	history: Message[];
 };
 
-export type LobbyAction =
+export type LobbyEvent =
 	| {
-			action: "join";
+			type: "join";
 			username: string;
 			timestamp: Date;
 	  }
 	| {
-			action: "leave";
+			type: "leave";
 			username: string;
 			timestamp: Date;
 	  }
 	| {
-			action: "teamChange";
+			type: "teamChange";
 			username: string;
 			team: "red" | "blue";
 			timestamp: Date;
 	  }
 	| {
-			action: "slotChange";
+			type: "slotChange";
 			username: string;
 			slot: number;
 			timestamp: Date;
 	  }
 	| {
-			action: "mapChange";
+			type: "mapChange";
 			username: string;
 			mapId: string;
 			timestamp: Date;
 	  }
 	| {
-			action: "hostClear";
+			type: "hostClear";
 			timestamp: Date;
 	  }
 	| {
-			action: "matchStart";
+			type: "matchStart";
 			timestamp: Date;
 	  }
 	| {
-			action: "matchFinish";
+			type: "matchFinish";
 			timestamp: Date;
 	  }
 	| {
-			action: "matchAbort";
+			type: "matchAbort";
 			timestamp: Date;
 	  };
 
-export type ChannelEvent = LobbyAction | Message;
+export type ChannelEvent = LobbyEvent | Message;
 
 export type LobbyChannel = BaseChannel & {
 	type: "lobby";

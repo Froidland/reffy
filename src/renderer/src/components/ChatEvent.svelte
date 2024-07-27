@@ -10,7 +10,7 @@
 </script>
 
 <!-- TODO: implement logic and design for all channel events -->
-{#if event.action === "message"}
+{#if event.type === "message"}
 	<li class="flex gap-2">
 		<p class="[overflow-wrap:anywhere]">
 			<span class="text-zinc-300"

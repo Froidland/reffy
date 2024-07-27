@@ -28,7 +28,7 @@ export function initializeBancho(
 			channelName: isIncoming
 				? message.user.ircUsername
 				: message.recipient.ircUsername,
-			action: "message",
+			type: "message",
 			username: message.user.ircUsername,
 			message: message.content,
 			timestamp: new Date(),
@@ -40,7 +40,7 @@ export function initializeBancho(
 		);
 		webContents.send("bancho:cm", {
 			channelName: message.channel.name,
-			action: "message",
+			type: "message",
 			username: message.user.ircUsername,
 			message: message.content,
 			timestamp: new Date(),
