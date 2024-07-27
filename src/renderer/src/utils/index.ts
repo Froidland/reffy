@@ -51,3 +51,11 @@ export function createDefaultChannel(channelName: string): Channel {
 		}
 	}
 }
+
+export function generateId(length?: number) {
+	const array = new Uint8Array((length ?? 16) / 2);
+	window.crypto.getRandomValues(array);
+	return Array.from(array, (value) =>
+		value.toString(16).padStart(2, "0"),
+	).join("");
+}

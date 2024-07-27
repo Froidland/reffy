@@ -1,4 +1,5 @@
 <script lang="ts">
+	import TextInput from "../components/ui/TextInput.svelte";
 	import { config } from "../stores/config.svelte";
 	import { router } from "../stores/route.svelte";
 
@@ -46,23 +47,23 @@
 		class="flex w-80 flex-col gap-4 rounded-lg bg-zinc-800 p-8"
 	>
 		<h1 class="text-center text-xl font-medium text-white">IRC Login</h1>
-		<input
-			class="rounded bg-zinc-700 px-2 py-2 text-white"
-			type="text"
-			name="username"
+		<TextInput
+			label="IRC Username"
 			placeholder="Username"
+			name="username"
+			type="text"
 		/>
-		<input
-			class="rounded bg-zinc-700 px-2 py-2 text-white"
-			type="password"
-			name="password"
+		<TextInput
+			label="IRC Password"
 			placeholder="Password"
-		/>
-		<input
-			class="rounded bg-zinc-700 px-2 py-2 text-white"
+			name="password"
 			type="password"
-			name="apiKey"
+		/>
+		<TextInput
+			label="API Key"
 			placeholder="API Key (optional)"
+			name="apiKey"
+			type="text"
 		/>
 		{#if errorMessage}
 			<p class="text-red-500">{errorMessage}</p>
