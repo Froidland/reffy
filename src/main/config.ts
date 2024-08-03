@@ -1,11 +1,12 @@
 import Store from "electron-store";
 
-type Config = {
+export type Config = {
 	credentials: {
 		username: string;
 		password: string;
+		apiKey?: string;
+		rememberMe: boolean;
 	};
-	rememberMe: boolean;
 };
 
 export const config = new Store<Config>();

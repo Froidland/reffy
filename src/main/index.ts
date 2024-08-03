@@ -11,7 +11,7 @@ import {
 	loginBancho,
 	sendMessage,
 } from "./bancho.js";
-import { config } from "./config.js";
+import { config, type Config } from "./config.js";
 import BanchoJs from "bancho.js";
 
 function createWindow() {
@@ -89,7 +89,7 @@ app.whenReady().then(() => {
 	);
 
 	ipcMain.handle("config:getCredentials", (_event, _arg) => {
-		if (!config.get("rememberMe")) {
+		if (!config.get("credentials.rememberMe")) {
 			return null;
 		}
 
@@ -97,10 +97,7 @@ app.whenReady().then(() => {
 	});
 	ipcMain.handle(
 		"config:setCredentials",
-		(
-			_event,
-			arg: { username: string; password: string; rememberMe: boolean },
-		) => {
+		(_event, arg: Config["credentials"]) => {
 			config.set("rememberMe", arg.rememberMe);
 
 			if (!arg.rememberMe) {
@@ -109,11 +106,7 @@ app.whenReady().then(() => {
 			}
 
 			// TODO: encrypt the password
-			config.set("credentials", {
-				username: arg.username,
-				password: arg.password,
-			});
-
+			config.set("credentials", arg);
 			return true;
 		},
 	);
