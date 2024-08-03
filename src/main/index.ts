@@ -63,8 +63,6 @@ app.whenReady().then(() => {
 
 	const window = createWindow();
 
-	// IPC test
-	ipcMain.on("ping", () => console.log("pong"));
 	ipcMain.handle("bancho:initialize", (_event, arg) =>
 		initializeBancho(arg, window.webContents),
 	);
