@@ -3,6 +3,7 @@
 	"version": "0.0.1",
 	"description": "A referee chat client for osu!Bancho made with TypeScript, Electron and Svelte",
 	"main": "./out/main/index.js",
+	"type": "module",
 	"author": "Francisco Hauva <phauva@proton.me>",
 	"homepage": "https://reffy.pancho.moe",
 	"scripts": {

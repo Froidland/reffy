@@ -1,5 +1,5 @@
 import BanchoJs from "bancho.js";
-import { debug } from "./utils";
+import { debug } from "./utils.js";
 import type { WebContents } from "electron";
 
 let bancho: BanchoJs.BanchoClient;

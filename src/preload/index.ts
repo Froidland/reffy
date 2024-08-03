@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from "electron";
 import { electronAPI } from "@electron-toolkit/preload";
-import type { InitializeBanchoOptions, BaseBanchoResponse } from "./types";
+import type { InitializeBanchoOptions, BaseBanchoResponse } from "./types.js";
 
 // Custom APIs for renderer
 const api = {

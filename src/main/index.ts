@@ -10,7 +10,7 @@ import {
 	leaveChannel,
 	loginBancho,
 	sendMessage,
-} from "./bancho";
+} from "./bancho.js";
 
 function createWindow() {
 	// Create the browser window.
@@ -22,7 +22,7 @@ function createWindow() {
 		autoHideMenuBar: true,
 		...(process.platform === "linux" ? { icon } : {}),
 		webPreferences: {
-			preload: join(__dirname, "../preload/index.js"),
+			preload: join(__dirname, "../preload/index.mjs"),
 			sandbox: false,
 		},
 	});
