@@ -11,6 +11,8 @@ import {
 	loginBancho,
 	sendMessage,
 } from "./bancho.js";
+import { config } from "./config.js";
+import BanchoJs from "bancho.js";
 
 function createWindow() {
 	// Create the browser window.
@@ -63,20 +65,57 @@ app.whenReady().then(() => {
 
 	const window = createWindow();
 
-	ipcMain.handle("bancho:initialize", (_event, arg) =>
-		initializeBancho(arg, window.webContents),
+	ipcMain.handle(
+		"bancho:initialize",
+		(_event, arg: BanchoJs.BanchoClientOptions) =>
+			initializeBancho(arg, window.webContents),
 	);
 	ipcMain.handle("bancho:login", async () => await loginBancho());
 	ipcMain.handle("bancho:destroy", destroyBancho);
 	ipcMain.handle(
 		"bancho:sendMessage",
-		async (_event, arg) => await sendMessage(arg.destination, arg.message),
+		async (_event, arg: { destination: string; message: string }) =>
+			await sendMessage(arg.destination, arg.message),
 	);
-	ipcMain.handle("bancho:joinChannel", async (_event, arg) =>
-		joinChannel(arg.channelName),
+	ipcMain.handle(
+		"bancho:joinChannel",
+		async (_event, arg: { channelName: string }) =>
+			joinChannel(arg.channelName),
 	);
-	ipcMain.handle("bancho:leaveChannel", async (_event, arg) =>
-		leaveChannel(arg.channelName),
+	ipcMain.handle(
+		"bancho:leaveChannel",
+		async (_event, arg: { channelName: string }) =>
+			leaveChannel(arg.channelName),
+	);
+
+	ipcMain.handle("config:getCredentials", (_event, _arg) => {
+		if (!config.get("rememberMe")) {
+			return null;
+		}
+
+		return config.get("credentials");
+	});
+	ipcMain.handle(
+		"config:setCredentials",
+		(
+			_event,
+			arg: { username: string; password: string; rememberMe: boolean },
+		) => {
+			config.set("rememberMe", arg.rememberMe);
+
+			if (!arg.rememberMe) {
+				config.delete("credentials");
+				return false;
+			}
+
+			// TODO: encrypt the password
+			config.set("credentials", {
+				username: arg.username,
+				password: arg.password,
+			});
+
+			return true;
+		},
 	);
 
 	app.on("activate", function () {
