@@ -14,7 +14,7 @@
 
 	let { channel = null }: Props = $props();
 
-	let eventListElement: HTMLUListElement = $state();
+	let eventListElement: HTMLUListElement | undefined = $state();
 	let message = $state("");
 
 	// TODO: if the channel is changed, scroll to bottom with no smooth scroll
@@ -29,6 +29,10 @@
 			eventListElement.scrollHeight - 20
 		) {
 			tick().then(() => {
+				if (!eventListElement) {
+					return;
+				}
+
 				eventListElement.scroll({
 					top: eventListElement.scrollHeight,
 					behavior: "smooth",
@@ -42,7 +46,7 @@
 		const formData = new FormData(event.target as HTMLFormElement);
 		const formMessage = formData.get("message");
 
-		if (!formMessage) {
+		if (!formMessage || !channel) {
 			return;
 		}
 

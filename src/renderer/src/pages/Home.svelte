@@ -12,7 +12,7 @@
 	import { config } from "../stores/config.svelte";
 
 	let currentChannel = $derived<Channel | null>(
-		channels.get(config.activeChannelName) || null,
+		channels.get(config.activeChannelName ?? "") || null,
 	);
 
 	async function handleCloseChannel(channelName: string) {
