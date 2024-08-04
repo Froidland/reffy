@@ -2,18 +2,21 @@ import BanchoJs from "bancho.js";
 import { debug } from "./utils.js";
 import type { WebContents } from "electron";
 
+const channelListeners: Record<string, BanchoJs.BanchoChannel> = {};
 let bancho: BanchoJs.BanchoClient;
 let selfUsername: string;
+let webContents: WebContents;
 
 export function initializeBancho(
 	options: BanchoJs.BanchoClientOptions,
-	webContents: WebContents, // TODO: maybe don't pass the entire webContents object to this function
+	wc: WebContents,
 ) {
 	if (bancho) {
 		return;
 	}
 
 	bancho = new BanchoJs.BanchoClient(options);
+	webContents = wc;
 	selfUsername = options.username;
 	debug("{initializeBancho} bancho instance created");
 	// TODO: maybe consider storing messages on the main process too?
@@ -34,19 +37,7 @@ export function initializeBancho(
 			timestamp: new Date(),
 		});
 	});
-	bancho.on("CM", (message) => {
-		debug(
-			`[${message.channel.name}] ${message.user.ircUsername}: ${message.content}`,
-		);
-		webContents.send("bancho:cm", {
-			channelName: message.channel.name,
-			type: "message",
-			username: message.user.ircUsername,
-			message: message.content,
-			timestamp: new Date(),
-		});
-	});
-	debug("{initializeBancho} registered listeners");
+	debug("{initializeBancho} registered private message listener");
 }
 
 export function disconnectBancho() {
@@ -191,6 +182,20 @@ export async function joinChannel(channelName: string) {
 		await channel.join();
 		debug("{joinChannel} joined channel", channelName);
 
+		channelListeners[channel.name] = channel.on("message", (message) => {
+			debug(
+				`[${channel.name}] ${message.user.ircUsername}: ${message.content}`,
+			);
+			webContents.send("bancho:cm", {
+				channelName: channel.name,
+				type: "message",
+				username: message.user.ircUsername,
+				message: message.content,
+				timestamp: new Date(),
+			});
+		});
+		debug(`{joinChannel} registered message listener for ${channel.name}`);
+
 		return {
 			success: true,
 			message: `Joined ${channelName}`,
@@ -225,6 +230,8 @@ export async function leaveChannel(channelName: string) {
 
 		await channel.leave();
 		debug("{leaveChannel} left channel", channelName);
+		delete channelListeners[channel.name];
+		debug("{leaveChannel} removed message listener for", channelName);
 
 		return {
 			success: true,
