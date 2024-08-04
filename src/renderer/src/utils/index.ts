@@ -1,7 +1,9 @@
 import type { Channel, ChannelType } from "../types";
 
+/**
+ * Get a formatted timestamp string in the format of `hh:mm:ss`.
+ */
 export function getFormattedTimestamp(date: Date) {
-	// "[hh:mm:ss]"
 	return `${date.getHours().toString().padStart(2, "0")}:${date
 		.getMinutes()
 		.toString()
@@ -10,7 +12,7 @@ export function getFormattedTimestamp(date: Date) {
 
 export function getChannelTypeFromName(channelName: string): ChannelType {
 	if (channelName.startsWith("#mp_")) {
-		return "lobby";
+		return "multiplayer";
 	}
 
 	if (channelName.startsWith("#")) {
@@ -22,16 +24,16 @@ export function getChannelTypeFromName(channelName: string): ChannelType {
 
 export function createDefaultChannel(channelName: string): Channel {
 	switch (getChannelTypeFromName(channelName)) {
-		case "lobby": {
+		case "multiplayer": {
 			return {
-				type: "lobby",
+				type: "multiplayer",
 				name: channelName,
 				gamemode: "osu",
 				teamMode: "headToHead",
 				size: 0,
 				mods: "",
 				winCondition: "score",
-				players: [],
+				players: {},
 				history: [],
 			};
 		}
