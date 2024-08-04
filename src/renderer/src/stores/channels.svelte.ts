@@ -1,6 +1,21 @@
 import { SvelteMap } from "svelte/reactivity";
 import { createDefaultChannel } from "../utils";
-import type { Channel, Message } from "../types";
+import {
+	type Channel,
+	type UserJoinedEvent,
+	type UserLeftEvent,
+	type Message,
+	type GenericChannelEvent,
+	type ChannelEvent,
+} from "../types";
+
+function isGenericEvent(event: ChannelEvent): event is GenericChannelEvent {
+	return (
+		event.type === "message" ||
+		event.type === "userJoined" ||
+		event.type === "userLeft"
+	);
+}
 
 function createChannelStore() {
 	const channels = new SvelteMap<string, Channel>();
@@ -16,7 +31,8 @@ function createChannelStore() {
 
 	const removeChannel = (channelName: string) => channels.delete(channelName);
 
-	const addMessage = (channelName: string, message: Message) => {
+	const addEvent = (channelName: string, event: ChannelEvent) => {
+		// TODO: This feels like a hack, but it works for now
 		let channel = $state(channels.get(channelName));
 
 		if (!channel) {
@@ -24,7 +40,13 @@ function createChannelStore() {
 			channels.set(channelName, channel);
 		}
 
-		channel.history.push(message);
+		if (channel.type === "multiplayer") {
+			channel.history.push(event);
+		} else {
+			if (isGenericEvent(event)) {
+				channel.history.push(event);
+			}
+		}
 	};
 
 	return {
@@ -32,7 +54,7 @@ function createChannelStore() {
 		get,
 		addChannel,
 		removeChannel,
-		addMessage,
+		addEvent,
 	};
 }
 
@@ -40,14 +62,21 @@ export const channels = createChannelStore();
 
 window.electron.ipcRenderer.on(
 	"bancho:pm",
-	(_event, message: Message & { channelName: string }) => {
-		channels.addMessage(message.channelName, message);
+	(_electronEvent, message: Message & { channelName: string }) => {
+		channels.addEvent(message.channelName, message);
 	},
 );
 
 window.electron.ipcRenderer.on(
 	"bancho:cm",
-	(_event, message: Message & { channelName: string }) => {
-		channels.addMessage(message.channelName, message);
+	(
+		_electronEvent,
+		event: (Message | UserJoinedEvent | UserLeftEvent) & {
+			channelName: string;
+		},
+	) => {
+		if (event.type === "message") {
+			channels.addEvent(event.channelName, event);
+		}
 	},
 );

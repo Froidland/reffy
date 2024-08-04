@@ -2,7 +2,7 @@ import BanchoJs from "bancho.js";
 import { debug } from "./utils.js";
 import type { WebContents } from "electron";
 
-const channelListeners: Record<string, BanchoJs.BanchoChannel> = {};
+const channels: Record<string, BanchoJs.BanchoChannel> = {};
 let bancho: BanchoJs.BanchoClient;
 let selfUsername: string;
 let webContents: WebContents;
@@ -181,20 +181,11 @@ export async function joinChannel(channelName: string) {
 
 		await channel.join();
 		debug("{joinChannel} joined channel", channelName);
-
-		channelListeners[channel.name] = channel.on("message", (message) => {
-			debug(
-				`[${channel.name}] ${message.user.ircUsername}: ${message.content}`,
-			);
-			webContents.send("bancho:cm", {
-				channelName: channel.name,
-				type: "message",
-				username: message.user.ircUsername,
-				message: message.content,
-				timestamp: new Date(),
-			});
-		});
-		debug(`{joinChannel} registered message listener for ${channel.name}`);
+		channels[channel.name] = channel;
+		registerGenericEventListeners(channel);
+		debug(
+			`{joinChannel} registered event listeners for channel ${channel.name}`,
+		);
 
 		return {
 			success: true,
@@ -219,7 +210,7 @@ export async function leaveChannel(channelName: string) {
 	}
 
 	try {
-		const channel = bancho.getChannel(channelName);
+		const channel = channels[channelName];
 		if (!channel) {
 			debug("{leaveChannel} channel not found", channelName);
 			return {
@@ -230,8 +221,12 @@ export async function leaveChannel(channelName: string) {
 
 		await channel.leave();
 		debug("{leaveChannel} left channel", channelName);
-		delete channelListeners[channel.name];
-		debug("{leaveChannel} removed message listener for", channelName);
+		channel.removeAllListeners();
+		debug(
+			"{leaveChannel} removed event listeners for channel",
+			channelName,
+		);
+		delete channels[channelName];
 
 		return {
 			success: true,
@@ -244,4 +239,239 @@ export async function leaveChannel(channelName: string) {
 			message: (err as Error).message,
 		};
 	}
+}
+
+export async function createLobby(name: string, isPrivate?: boolean) {
+	if (!bancho) {
+		debug("{createLobby} bancho not initialized");
+		return {
+			success: false,
+			message: "Bancho not initialized",
+		};
+	}
+	try {
+		const channel = await bancho.createLobby(name, isPrivate);
+		debug("{createLobby} created lobby", channel.name);
+
+		registerGenericEventListeners(channel);
+		registerLobbyEventListeners(channel);
+
+		channels[channel.name] = channel;
+
+		return {
+			success: true,
+			message: `Created ${channel.name}`,
+			data: {
+				channelName: channel.name,
+			},
+		};
+	} catch (err) {
+		debug("{createLobby}", err);
+		return {
+			success: false,
+			message: (err as Error).message,
+		};
+	}
+}
+
+// TODO: add functions for joining a pre-existing lobby and also leaving a lobby without closing it
+
+export async function closeLobby(channelName: string) {
+	if (!bancho) {
+		debug("{closeLobby} bancho not initialized");
+		return {
+			success: false,
+			message: "Bancho not initialized",
+		};
+	}
+
+	try {
+		const channel = channels[channelName];
+		if (!channel) {
+			debug("{closeLobby} channel not found", channelName);
+			return {
+				success: false,
+				message: "Channel not found",
+			};
+		}
+
+		if (!(channel instanceof BanchoJs.BanchoMultiplayerChannel)) {
+			debug(
+				"{closeLobby} attempted to close channel that is not a lobby",
+				channelName,
+			);
+
+			return {
+				success: false,
+				message: "Channel is not a lobby",
+			};
+		}
+
+		await channel.lobby.closeLobby();
+		debug("{closeLobby} closed lobby", channelName);
+		channel.removeAllListeners();
+		channel.lobby.removeAllListeners();
+		debug("{closeLobby} removed event listeners for channel", channelName);
+
+		return {
+			success: true,
+			message: `Closed ${channelName}`,
+		};
+	} catch (err) {
+		debug("{closeLobby}", err);
+		return {
+			success: false,
+			message: (err as Error).message,
+		};
+	}
+}
+
+/**
+ * Registers generic event listeners such as `message`, `userJoined` (IRC's `JOIN`) and `userLeft` (IRC's `PART`) for a channel.
+ */
+function registerGenericEventListeners(channel: BanchoJs.BanchoChannel) {
+	channel.on("message", (message) => {
+		debug(
+			`[${channel.name}] ${message.user.ircUsername}: ${message.content}`,
+		);
+		webContents.send("bancho:cm", {
+			channelName: channel.name,
+			type: "message",
+			username: message.user.ircUsername,
+			message: message.content,
+			timestamp: new Date(),
+		});
+	});
+	channel.on("JOIN", (member) => {
+		debug(
+			`[${channel.name}] user ${member.user.ircUsername} joined via IRC`,
+		);
+		webContents.send("bancho:cm", {
+			channelName: channel.name,
+			type: "userJoined",
+			username: member.user.ircUsername,
+			timestamp: new Date(),
+		});
+	});
+	channel.on("PART", (member) => {
+		debug(`[${channel.name}] user ${member.user.ircUsername} left via IRC`);
+		webContents.send("bancho:cm", {
+			channelName: channel.name,
+			type: "userLeft",
+			username: member.user.ircUsername,
+			timestamp: new Date(),
+		});
+	});
+}
+
+/**
+ * Registers event listeners specific to a lobby channel.
+ */
+function registerLobbyEventListeners(
+	channel: BanchoJs.BanchoMultiplayerChannel,
+) {
+	channel.lobby.on("playerJoined", (event) => {
+		debug(
+			`[${channel.name}] player ${event.player.user.ircUsername} joined in slot ${event.slot}`,
+		);
+		webContents.send("bancho:cm", {
+			channelName: channel.name,
+			type: "playerJoined",
+			username: event.player.user.ircUsername,
+			slot: event.slot,
+			timestamp: new Date(),
+		});
+	});
+
+	channel.lobby.on("playerLeft", (player) => {
+		debug(`[${channel.name}] player ${player.user.ircUsername} left`);
+		webContents.send("bancho:cm", {
+			channelName: channel.name,
+			type: "playerLeft",
+			username: player.user.ircUsername,
+			timestamp: new Date(),
+		});
+	});
+
+	channel.lobby.on("playerMoved", (event) => {
+		debug(
+			`[${channel.name}] ${event.player.user.ircUsername} moved to slot ${event.slot}`,
+		);
+		webContents.send("bancho:cm", {
+			channelName: channel.name,
+			type: "playerMoved",
+			username: event.player.user.ircUsername,
+			slot: event.slot,
+			timestamp: new Date(),
+		});
+	});
+
+	channel.lobby.on("playerChangedTeam", (event) => {
+		debug(
+			`[${channel.name}] ${event.player.user.ircUsername} changed team to ${event.team}`,
+		);
+		webContents.send("bancho:cm", {
+			channelName: channel.name,
+			type: "playerChangedTeam",
+			username: event.player.user.ircUsername,
+			team: event.team,
+			timestamp: new Date(),
+		});
+	});
+
+	channel.lobby.on("beatmapId", (beatmapId) => {
+		debug(`[${channel.name}] map changed to ${beatmapId}`);
+		webContents.send("bancho:cm", {
+			channelName: channel.name,
+			type: "beatmapChanged",
+			beatmapId: beatmapId,
+			timestamp: new Date(),
+		});
+	});
+
+	channel.lobby.on("host", (player) => {
+		debug(`[${channel.name}] host changed to ${player.user.ircUsername}`);
+		webContents.send("bancho:cm", {
+			channelName: channel.name,
+			type: "hostChanged",
+			username: player.user.ircUsername,
+			timestamp: new Date(),
+		});
+	});
+
+	channel.lobby.on("hostCleared", () => {
+		debug(`[${channel.name}] host cleared`);
+		webContents.send("bancho:cm", {
+			channelName: channel.name,
+			type: "hostCleared",
+			timestamp: new Date(),
+		});
+	});
+
+	channel.lobby.on("matchStarted", () => {
+		debug(`[${channel.name}] match started`);
+		webContents.send("bancho:cm", {
+			channelName: channel.name,
+			type: "matchStarted",
+			timestamp: new Date(),
+		});
+	});
+
+	channel.lobby.on("matchFinished", () => {
+		debug(`[${channel.name}] match finished`);
+		webContents.send("bancho:cm", {
+			channelName: channel.name,
+			type: "matchFinished",
+			timestamp: new Date(),
+		});
+	});
+
+	channel.lobby.on("matchAborted", () => {
+		debug(`[${channel.name}] match aborted`);
+		webContents.send("bancho:cm", {
+			channelName: channel.name,
+			type: "matchAborted",
+			timestamp: new Date(),
+		});
+	});
 }
