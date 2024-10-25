@@ -1,4 +1,3 @@
-import { SvelteMap } from "svelte/reactivity";
 import { createDefaultChannel } from "../utils";
 import {
 	type Channel,
@@ -17,53 +16,43 @@ function isGenericEvent(event: ChannelEvent): event is GenericChannelEvent {
 	);
 }
 
-function createChannelStore() {
-	const channels = new SvelteMap<string, Channel>();
+export const channels: {
+	[name: string]: Channel;
+} = $state({});
 
-	const get = (key: string) => channels.get(key);
+export function addChannel(channel: Channel) {
+	const existingChannel = channels[channel.name];
 
-	const addChannel = (channel: Channel) => {
-		if (!channels.has(channel.name)) {
-			let newChannel = $state(channel);
-			channels.set(channel.name, newChannel);
-		}
-	};
-
-	const removeChannel = (channelName: string) => channels.delete(channelName);
-
-	const addEvent = (channelName: string, event: ChannelEvent) => {
-		// TODO: This feels like a hack, but it works for now
-		let channel = $state(channels.get(channelName));
-
-		if (!channel) {
-			channel = createDefaultChannel(channelName);
-			channels.set(channelName, channel);
-		}
-
-		if (channel.type === "multiplayer") {
-			channel.history.push(event);
-		} else {
-			if (isGenericEvent(event)) {
-				channel.history.push(event);
-			}
-		}
-	};
-
-	return {
-		values: channels,
-		get,
-		addChannel,
-		removeChannel,
-		addEvent,
-	};
+	if (!existingChannel) {
+		channels[channel.name] = channel;
+	}
 }
 
-export const channels = createChannelStore();
+export function removeChannel(channelName: string) {
+	delete channels[channelName];
+}
+
+export function addEvent(channelName: string, event: ChannelEvent) {
+	let channel = channels[channelName];
+
+	if (!channel) {
+		channels[channelName] = createDefaultChannel(channelName);
+		channel = channels[channelName];
+	}
+
+	if (channel.type === "multiplayer") {
+		channel.history.push(event);
+	} else {
+		if (isGenericEvent(event)) {
+			channel.history.push(event);
+		}
+	}
+}
 
 window.electron.ipcRenderer.on(
 	"bancho:pm",
 	(_electronEvent, message: Message & { channelName: string }) => {
-		channels.addEvent(message.channelName, message);
+		addEvent(message.channelName, message);
 	},
 );
 
@@ -76,7 +65,7 @@ window.electron.ipcRenderer.on(
 		},
 	) => {
 		if (event.type === "message") {
-			channels.addEvent(event.channelName, event);
+			addEvent(event.channelName, event);
 		}
 	},
 );

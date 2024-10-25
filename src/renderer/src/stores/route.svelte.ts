@@ -1,14 +1,9 @@
-function createRouteStore(initialValue: string) {
-	let route = $state(initialValue);
+type Routes = "login" | "home";
 
-	return {
-		get value() {
-			return route;
-		},
-		set(value: string) {
-			route = value;
-		},
-	};
-}
+type Route = {
+	name: Routes;
+};
 
-export const router = createRouteStore("login");
+export const route = $state<Route>({
+	name: "login",
+});

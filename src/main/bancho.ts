@@ -249,6 +249,16 @@ export async function createLobby(name: string, isPrivate?: boolean) {
 			message: "Bancho not initialized",
 		};
 	}
+
+	if (!bancho.osuApi?.apiKey) {
+		debug("{createLobby} osu! API key not set");
+
+		return {
+			success: false,
+			message: "osu! API key not set",
+		};
+	}
+
 	try {
 		const channel = await bancho.createLobby(name, isPrivate);
 		debug("{createLobby} created lobby", channel.name);

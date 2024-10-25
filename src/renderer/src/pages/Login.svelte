@@ -1,7 +1,7 @@
 <script lang="ts">
 	import TextInput from "../components/ui/TextInput.svelte";
 	import { config } from "../stores/config.svelte";
-	import { router } from "../stores/route.svelte";
+	import { route } from "../stores/route.svelte";
 
 	async function handleLogin(event: SubmitEvent) {
 		event.preventDefault();
@@ -33,7 +33,7 @@
 		config.hasApiKey = Boolean(apiKey);
 		errorMessage = undefined;
 		loading = false;
-		router.set("home");
+		route.name = "home";
 	}
 
 	let errorMessage: string | undefined;

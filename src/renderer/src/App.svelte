@@ -1,11 +1,11 @@
 <script lang="ts">
 	import Login from "./pages/Login.svelte";
 	import Home from "./pages/Home.svelte";
-	import { router } from "./stores/route.svelte";
+	import { route } from "./stores/route.svelte";
 </script>
 
-{#if router.value === "login"}
+{#if route.name === "login"}
 	<Login />
-{:else if router.value === "home"}
+{:else if route.name === "home"}
 	<Home />
 {/if}

@@ -1,5 +1,5 @@
-<script lang="ts" context="module">
-	import { channels } from "../stores/channels.svelte";
+<script lang="ts" module>
+	import { addChannel } from "../stores/channels.svelte";
 	import { config } from "../stores/config.svelte";
 	import { createDefaultChannel, getChannelTypeFromName } from "../utils";
 
@@ -40,7 +40,7 @@
 			}
 		}
 
-		channels.addChannel(createDefaultChannel(channelNameValue.toString()));
+		addChannel(createDefaultChannel(channelNameValue.toString()));
 		config.activeChannelName = channelNameValue.toString();
 		loading = false;
 		channelName = "";

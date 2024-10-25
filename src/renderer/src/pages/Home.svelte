@@ -7,12 +7,12 @@
 	} from "../components/NewChannelDialog.svelte";
 	import CrossIcon from "../components/icons/CrossIcon.svelte";
 	import { getChannelTypeFromName } from "../utils";
-	import { channels } from "../stores/channels.svelte";
+	import { channels, removeChannel } from "../stores/channels.svelte";
 	import type { Channel } from "../types";
 	import { config } from "../stores/config.svelte";
 
 	let currentChannel = $derived<Channel | null>(
-		channels.get(config.activeChannelName ?? "") || null,
+		channels[config.activeChannelName || ""] || null,
 	);
 
 	async function handleCloseChannel(channelName: string) {
@@ -21,7 +21,7 @@
 		}
 
 		config.activeChannelName = "";
-		channels.removeChannel(channelName);
+		removeChannel(channelName);
 	}
 </script>
 
@@ -43,7 +43,7 @@
 				<!-- TODO: add divider -->
 			</div>
 			<ul class="flex flex-col">
-				{#each channels.values as [_, channel]}
+				{#each Object.entries(channels) as [_, channel]}
 					<button
 						class={clsx(
 							"flex items-center justify-between rounded px-2 py-1",
